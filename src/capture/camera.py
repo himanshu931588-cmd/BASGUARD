@@ -10,7 +10,7 @@ import time
 import threading
 import queue
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class CameraCapture:
         self._release_camera()
         logger.info("CameraCapture stopped")
 
-    def get_frame(self, timeout: float = 0.1) -> Optional[Tuple[bool, any]]:
+    def get_frame(self, timeout: float = 0.1) -> Optional[Tuple[bool, Any]]:
         """
         Get the latest frame from the queue.
         
@@ -77,7 +77,7 @@ class CameraCapture:
         except queue.Empty:
             return None
 
-    def get_frame_nowait(self) -> Optional[Tuple[bool, any]]:
+    def get_frame_nowait(self) -> Optional[Tuple[bool, Any]]:
         """Get a frame without waiting. Returns None if no frame available."""
         try:
             return self._frame_queue.get_nowait()
@@ -100,8 +100,10 @@ class CameraCapture:
 
     @property
     def is_file_source(self) -> bool:
-        """True if source is a video file rather than a webcam."""
-        return isinstance(self.source, str)
+        """True if source is a video file rather than a webcam or stream."""
+        if not isinstance(self.source, str):
+            return False
+        return not self.source.startswith(("rtsp://", "http://", "https://", "tcp://"))
 
     def _open_camera(self) -> bool:
         """Open the video capture device/file."""
@@ -139,9 +141,10 @@ class CameraCapture:
 
     def _release_camera(self):
         """Release the video capture device."""
-        if self._cap is not None:
-            self._cap.release()
-            self._cap = None
+        with self._lock:
+            if self._cap is not None:
+                self._cap.release()
+                self._cap = None
 
     def _capture_loop(self):
         """Main capture loop running in a background thread."""
