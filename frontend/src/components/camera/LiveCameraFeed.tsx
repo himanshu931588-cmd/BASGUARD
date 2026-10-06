@@ -283,15 +283,14 @@ export const LiveCameraFeed = () => {
         {/* Real Hardware User Webcam Feed Viewport */}
         {activeCam === 'WEBCAM' ? (
           <div className="relative w-full h-full flex items-center justify-center bg-black">
-            {webcamStatus === 'LIVE' ? (
-              <video 
-                ref={webcamVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover z-10"
-              />
-            ) : webcamStatus === 'FALLBACK' ? (
+            <video 
+              ref={webcamVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`w-full h-full object-cover z-10 ${webcamStatus === 'LIVE' ? 'block' : 'hidden'}`}
+            />
+            {webcamStatus === 'FALLBACK' ? (
               <div className="relative w-full h-full flex items-center justify-center">
                 <img 
                   src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/video_feed`} 
@@ -309,12 +308,12 @@ export const LiveCameraFeed = () => {
                   className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none" 
                 />
               </div>
-            ) : (
+            ) : webcamStatus !== 'LIVE' ? (
               <div className="flex flex-col items-center gap-2 text-slate-400 font-mono z-30">
                 <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin" />
                 <span className="text-xs font-semibold">INITIALIZING HARDWARE WEBCAM STREAM...</span>
               </div>
-            )}
+            ) : null}
 
             <div className="absolute top-[25%] left-[25%] w-[50%] h-[50%] border-2 border-emerald-400/80 rounded z-20 shadow-glow-success pointer-events-none">
               <div className="absolute -top-6 left-0 px-2 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-mono shadow-md">
